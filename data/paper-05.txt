@@ -1,0 +1,551 @@
+DENSO TECHNICAL REVIEW Vol.27 2022
+電気自動車向けデュアルインバータシステム の制御手法＊
+Control Method of a Dual Inverter System for BEV
+風岡諒哉 木村友則
+Ryoya KAZAOKA Tomonori KIMURA
+山田隆弘 野口季彦
+Takahiro YAMADA
+Toshihiko NOGUCHI
+A control method for BEV of a dual inverter system with one battery is proposed. The conventional dual inverter system consists of an open-end winding motor and two inverters, and each inverter has an independent battery. In case of battery failure, it can be operated like a multi-level inverter by controlling the voltage of the smoothing capacitor on the failure side to half of the battery voltage, and improvement in system efficiency can be expected. However, it is difficult to maintain the capacitor voltage at half of the battery voltage in a wide operating region of the BEV. Therefore, a control method that switches between single inverter operation and dual inverter operation according to the operating conditions, and can respond to changes in the capacitor voltage during operation switching was developed. It was demonstrated by hardware in-loop simulation and with an experimental vehicle.
+特 ×
+集 ×
+Key words : Dual Inverter, Open-End Winding Motor, Vector Control, Battery Electric Vehicle
+1.はじめに
+地球温暖化に対する危機感の高まりから，パリ協定 の目標達成に向けて自動車の電動化が加速している． 2020年のG20サミットにおいて，日本は2050年ま でに温室効果ガス排出量ゼロを目指し，さらに2035 年までに新車販売を電動車のみにすると表明した． これにはハイブリッド電気自動車（Hybrid Electric Vehicle：以下ではHEVと略す）も含まれているが， EU理事会（閣僚理事会）で2022年6月29日に合意 された内容では，EU域内での乗用車及び小型商用車 （バン）の新車からの二酸化炭素排出量を2035年まで に100%削減する方向性が示されており，今後は電気 自動車（Battery Electric Vehicle：以下ではBEVと略す）
+の重要性が高まることが予想される．BEVの主な欠点 は，走行距離が短いこと，価格が高いこと，充電時間 が長いことである．バッテリを多く積めば走行距離は 伸びるが，コストが高くなり充電時間が長くなってし まう．従って，BEVはシステム効率を改善して走行距 離を延長し，コストを低減することが重要である． デュアルインバータを用いたモータ駆動システム は効率を向上させる方法の一つである1) 2)．Fig. 1に 本システムの構成を示す．2つの独立したインバータ （Inverter 1，Inverter 2）がオープン巻線モータに接続 される．モータ巻線には2つのバッテリの直列接続に 相当する電圧を印加することができるので，それによ って電流を低減することができる．また，マルチレベ ル駆動により，インバータ効率やモータ効率を向上さ
+＊一般社団法人電気学会の了承を得て，IPEC2022, Power Electronics and Motor Drives for Automobiles (OS), 16B1-3(20220.5)を和訳，一部加筆して転載
+55
+56
+DENSO TECHNICAL REVIEW Vol.27 2022
+57
+58
+(111)(011)'
+せることができる3)-5)．このシステムのもう1つの利 点は，フェールセーフ性能が高いことである．例えば， インバータの1つが故障した場合，故障したインバー タ側のモータ巻線端子を短絡して故障していないイン バータを用いてモータを駆動することができる．また， バッテリが故障した場合の動作についても研究されて いる6)-9)．故障したバッテリを分離し，故障側の平滑 コンデンサの電圧を元のバッテリ電圧の1/2に制御し てマルチレベル駆動を行い，故障後の動作の効率を向 上させる．故障直後の平滑コンデンサ電圧はバッテリ 電圧に等しいので，バッテリ電圧の半分まで放電しな がらモータを駆動する方法も検討されている．しかし， 実際にBEVで使用した場合，コンデンサ電圧が故障 直後以外でもバッテリ電圧の1/2からずれる場合が多 い． 例えば，BEVを起動する前には，コンデンサ電圧 は0である．また，加速時などに大電流を必要とする 場合には，コンデンサの充放電電流も増加し，コンデ ンサの電圧リップルが大きくなるため，コンデンサ電
+圧の変動を加味したモータ制御が必要となる．そこで 本論文では，バッテリとコンデンサを電源とするデュ アルインバータにおいて，逐次変化するコンデンサ電 圧に対応した可変電圧ベクトルによる空間ベクトル変 調（Space Vector Modulation：以下SVMと略す）により， コンデンサ電圧がバッテリ電圧の1/2から大きくずれ る状態を含むモータ制御を可能にする制御手法を提案 する．
+Fig. 1 Topology of the Dual Inverter System
+2.提案するデュアルインバータシステム の構成
+Fig. 2にバッテリとコンデンサを電源とするデュア
+ルインバータモータ駆動システムを示す．Inverter 1 の電源はバッテリであり，Inverter 2の電源はバッテ リ故障前にInverter 2の平滑コンデンサとして使用さ
+れていたコンデンサであり，Inverter 1の平滑コンデ ンサと同じ仕様である．Inverter 1のスイッチング状
+態はベクトル(u1 v1 w1)で表され，Inverter 2のスイ ッチング状態はベクトル(u2 v2 w2)ʼで表される．u1， v1，w1，u2，v2，w2は，ハイ側がオンの場合は1， ロー側がオンの場合は0である．
+Fig. 3に，各インバータの出力電圧レンジと出力電 圧ベクトルとの関係を示す．Inverter 1及びInverter 2の出力電圧範囲はそれぞれ実線と点線の六角形で 表現している．六角形の中心から頂点までの長さは， Inverter 1のバッテリ電圧とInverter 2のコンデンサ電 圧に対応する．Inverter 1,2はモータと逆方向に接続さ れているので，ベクトルの向きも逆になる．
+Fig. 4は，Inverter 2のコンデンサ電圧がInverter 1の電源電圧の1/2の場合と1/2未満である場合の， Inverter 1とInverter 2とを組み合わせた電圧出力範囲 と，コンデンサの充放電ベクトルとを示している．但 しこの場合のモータ電流は，Inverter 1からInverter 2 の方向を正として，U相のみ正で，他相は負とする． Inverter 2の出力電圧はInverter 1の出力電圧に加算さ れるので，Inverter 2の電圧出力範囲である六角形の 中心はInverter 1の六角形の頂点及び中心と一致する． 六角形の各頂点のマークは，各ベクトルでInverter 2
+Fig. 2 Topology of the Dual Inverter Motor Drive System with one battery
+Fig. 3 Relationship between output voltage range and output voltage vectors
+Fig. 4 Output Voltage region and Charging/ Discharging/Holding Vectors of the Dual Inverter System with one battery in the case of IU > 0, IV < 0, IW < 0
+x 特
+のコンデンサの充電動作または放電動作，充電も放電 もしない保持動作を表す．白い円は充電ベクトル，白 い三角形は放電ベクトル，黒い四角は保持ベクトルで ある．ベクトルが充電動作であるか，放電動作である か，あるいは保持動作であるかは，2つのインバータ のスイッチング状態及びモータに流れる3相の電流方 向に依存する．
+集 X
+Fig. 4左側の図に示すように，コンデンサ電圧VC がバッテリ電圧VBの1/2である場合，充電ベクトル (100) (100)ʼと放電ベクトル(000) (011)ʼは同じ位置 にあり，これらのベクトルはモータ駆動時に同じ電 圧を印加する．このように，Inverter 1の出力範囲に は，充電ベクトルと同じ電圧出力を有する放電ベクト ルが常に存在するため，コンデンサの充放電の切り替 えは，これらのベクトルを切り替えるだけでよく，デ ューティを変更する必要はない．充電ベクトル(100) (100)ʼにおける電流経路をFig.5 (a)に，放電ベクトル
+Fig. 5 Current flow of Charging, Discharging and Holding state
+Fig. 6 Control block diagram of the Dual Inverter with one battery
+Inverter I Inverter 2 1 Winding Motor
+Open-End
+Battery
+Battery
+141
+Inverter 1
+好好好
+Open-End 7 Winding Motor
+Inverter 2
+Battery
++
+Capacitor
+(ul vl w1)
+(u2 v2 w2)'
+1 ((110)
+1 (101). ....... (001)
+A W2
+(010)
+(000)
+U1
+U2 (000)'
+(011) (111) (100)
+(100) (IN1)' (011)'
+(001)
+¥(101)
+(110) ***................ (010)
+WIK
+V2
+Inverter 1
+Inverter 2
+Output voltage range of Inverter1(battery side) Output voltage range of Inverter2(capacitor side)
+(000)(011)' (000)(011)' (111)(011)'
+(100)(100)'
+><(100)(100)'
+>U
+(100)(000) (100)(111)' WK
+(100)(000)* (100)(111)'
+" Vc = VB / 2
+Vc<VB/2
+OCharging Vector/ ADischarging Vector/ =Holding Vector
+000
+111
+(100)
+(100)'
+(a) Charging
+121
+111
+(000)
+(011)'
+(b) Discharging
+141
+141
+(100)
+(000)*
+(c) Holding
+Command Torque T+
+MTPA Control
+dq Current FB Control
+dq
+Gate signals
+Gate signal Generation
+SVM
+ab
+Battery Voltage
+U phase current W phase current
+Muvw
+dq
+Current polarity judgment
+Capacitor Voltage
+Charge/Discharge mode judgment
+SVM
+Command Voltage
+V. V
+Voltage Vector selection
+Duty
+Switching sequencer
+Duty calculation
+1
+Battery Voltage Capacitor Voltage Current polarity
+Charge/Discharge
+DENSO TECHNICAL REVIEW Vol.27 2022
+x 特
+59
+60
+1
+C
+<#3
+VC
+#4
+#1
+#2
+(000) (011)ʼにおける電流経路をFig.5 (b)に示す．（参 考までに保持ベクトル(100) (000)ʼにおける電流経路 をFig.5 (c)に示す．）一方，Fig. 4右側の図に示すよ うに，コンデンサ電圧VCがバッテリ電圧VBの1/2か らずれると，充電ベクトル(100) (100)ʼと放電ベクト ル(000) (011)ʼとが互いにずれる．従って，コンデン サの充放電の切り替えは，これらのベクトル切り替え るだけでなく，デューティも変更する必要がある． β 及び◌̅と定義する． γ 6つの電圧領域の配置は電流ベク トルによって異なる．電流ベクトルの領域がBの場合 は，W相軸負方向から各電圧領域を反時計回りにα，β，γ， α ◌̅ ， ◌̅ ◌̅ β 及び γ と定義する．電流ベクトルの領域が Cから Fの場合は基準となる軸をそれぞれ，V相軸正方向，U 相軸負方向，W相軸正方向，V相軸負方向として，同 様に電圧領域を定義する． ◌̅ ◌̅ ◌̅
+Fig. 6に本制御システムの構成を示す．一般的なモ タ制御に対して，モータ電流の極性判定とコンデン
+ー
+サの充放電を判定するアルゴリズムが追加されてい
+る． さらに，これらの判定結果に基づいてSVMで使 用する電圧ベクトルとデューティを決定し，インバー タのゲート信号を生成する．
+3.電圧ベクトル及びデューティの決定方法
+3.1 SVM用ベクトル選択方法
+SVMで使用する電圧ベクトルを決定するためには， まず，どのベクトルが充電ベクトルであり，どのベク トルが放電ベクトルであるかを決定する必要がある． これは，モータ電流の絶対値が最も大きい相と電流の 極性によって決定することができる．Fig. 7は電流ベ クトルが位置する領域と電流の極性との関係を示し， Fig. 8は各領域の充電ベクトル，放電ベクトル，保持 ベクトルを示す．充電ベクトルと放電ベクトルの区別
+を容易にするために，コンデンサ電圧がバッテリ電圧
+の1/2未満の場合を示す．例えば電流ベクトルがA領
+域の場合では，U相電流が正で他の相は負であるので， U相電流の絶対値が最大である．そのため，Inverter 2 のU相のハイ側のスイッチがオンのときにコンデンサ が充電され，Inverter 2のU相のロー側のスイッチが オンのときにコンデンサが放電される．従って，充電 ベクトルの位置は保持ベクトルの左側であり，放電ベ クトルの位置は保持ベクトルの右側である．他の電流
+ベクトルの領域の場合の充放電ベクトルも同様に決定 することができる．
+次に，電圧指令ベクトルの位置を2段階で指定する． ここでは，Fig. 7において，電流ベクトルの領域がA の場合について説明する．最初のステップでは，Fig. 8
+(a)の出力電圧範囲を，60度毎に6つの領域に分割し， 電圧指令ベクトルがどの領域に属するかを判定する． Fig. 9に6つの電圧領域の定義を示す．U相軸正方向 を基準にして，各電圧領域を反時計回りにα，β，γ，α ◌̅ ，
+◌̅
+電圧指令ベクトルがα，β，γ，α β 及び γ
+， 域に属するかを判定した後，次のステップでさらに詳 細な領域判定を行う．電圧指令ベクトルの位置がαの 場合について説明する．Fig. 10にα領域の電圧ベク トルによってさらに分割される領域#1から#4を示 す．(a)は充電モード，(b)は放電モードである．充電 モードでは，充電ベクトルと保持ベクトルが接続さ れ，放電モードでは，放電ベクトルと保持ベクトルが 接続されて領域が分割される．ea及びebはUVWの方 向を示す単位ベクトルであり，領域αの場合，eaはU 相軸正方向であり，ebはW相軸負方向である．電圧 指令ベクトルのea成分をVa，eb成分をVbとする．電 圧指令ベクトルはInverter 1の出力範囲を超えてはな らないので，VaとVbの和はバッテリ電圧以下である． 充電モードで電圧指令ベクトルが#1に入る条件は， Inverter 1のバッテリ電圧VE，Inverter 2のコンデン
+のどの領
+サ電圧VCとすると，次式で表される．
+(1) この条件を満たさない場合には，次式により電圧指令 ベクトルが#2を満たすか否かを判定する． Va 2 VE - Vo (2)
+この条件から外れた場合には，次式により電圧指令ベ
+クトルが#3に入るか否かを判定する．
+この条件を満たさない場合，電圧指令ベクトルの入る 領域は#4となる．放電モードの場合，#1から始まる
+判定式は，次の3つの式である．
+(4)
+(5)
+(6) γ (2 Vc - VE) V2 + VoVb 2 V2 このように，充電モードと放電モードとでは判定条件 が異なるが，これもαから◌̅までのパターンで異なる． Table 1に判定式を示す．
+Fig. 7 Relationship between Current Vector regions and Current polarity
+Fig. 8 Charging, Discharging and Holding Vectors of each current vector region
+Fig. 9 Region division in Voltage Command Vector Direction in case of Current Vector region A
+Fig. 10 Voltage command region α
+Table 1 Judgment Expressions
+集
+Va + V6 'S VE - Vc
+( VE - 2 V2) V2 + (VE - V) K ≥ (VE - V) (3)
+V region A : Iu ≥ 0, Iy< 0, Iw<0 B region B : Iu ≥ 0, Iy≥ 0, 1w< 0 D 1 region C : Lu< 0, Iv ≥ 0, 1w< 0 U region D : Iy < 0, 1y 2 0, 1w 2 0 E F region E : Iu< 0, Iv < 0, 1w≥0 region F : Lu 2 0, Iy < 0, 1w 2 0
+W
+W (a) region A
+W (b) region B
+V
+WŁ (c) region C
+WŁ
+(d) region D
+V VE
+V
+WK (e) region E
+(f) region F
+V Y
+Ve
+#5.
+8
+#1 #2
+V Vc
+Vc Vc
+VE
+VE
+(a) Charging mode
+(b) Discharging mode O Charging Vector/ ADischarging Vector/ Holding Vector
+Ve
+VC
+VI
+Va+ Vb≤ VE-VC
+1
+V22 VE-VC Vb ≥ VE - Vc
+VE
+VE
+Ve
+>>e,
+V1≥Vc
+Vb ≥ Vc
+;
+We
+VE
+VER
+VCVa + (VE- Vc) Vb S (VE -V)Vc
+(VE-VC)Va+ VCVb S (VE - Vc)VC
+1
+Vca
+». VcVa + (2Vc - VE)Vb ≥ Vc2
+(2Vc - VE)V2 + VcVb ≥ V2
+;
+Ve
+(Vg -2V)V2+ (VE -V)V. 2 (VE - VC)2
+(VE-VO)V2 + (VE-2VC)Vb 2 (VE - VC)2
+DENSO TECHNICAL REVIEW Vol.27 2022
+3.2デューティ計算方法
+Fig. 11にFig. 10と同じ電圧指令ベクトルが入る領 域がα，かつ電流ベクトルの領域がAの場合のベクト ル図を示す．上述したように，コンデンサを充電する 必要がある場合，SVMは，充電ベクトルと保持ベク トルとによって行われる．充電モード及び放電モード の両方において，Fig. 10の領域#2に電圧指令ベクト ルが入る場合について説明する．
+充電モードでは，保持ベクトル(100) (111)'及び充 電ベクトル(100) (100)'，(100) (101)'が使用される． 保持ベクトル(100) (111)'のデューティをm，充電ベ クトル(100) (100)'のデューティをl，充電ベクトル (100) (101)'のデューティをnとすると，それぞれの デューティは，次式(7) (8) (9)で表される．
+(7)
+(8)
+(9)
+一 方，放電モードの場合には，保持ベクトル(100) (000)ʼと放電ベクトル(111) (011)ʼ及び(110) (010)ʼが 用いられる． このとき，保持ベクトル(100) (000)ʼの デューティをm，放電ベクトル(111) (011)ʼのデュー ティをl，放電ベクトル(110) (010)ʼのデューティを nとすると，それぞれのデューティは，次式(10) (11) (12)で表される．
+(10)
+61
+62
+以上により，充電及び放電モードに応じてSVMの電 圧ベクトルとデューティを一意に定めることができ，コ ンデンサ充放電とモータ駆動制御の両立が実現できる． Table 2は，電流領域をA，電圧指令ベクトルの領域を αとした場合のベクトルセット選択式とデューティ式を V. Va 1=1-m-n m= V2 V,VA n = (VE -2V)V. - VeVb + Ve2 Vc(VE - V)
+まとめたものである．
+Fig. 11 Selection of the Vectors for SVM
+Table 2 Charging/Discharging Vector set and Duty
+4.シミュレーション方法と結果
+実際にモータを制御するコントローラを用いて HILS（Hardware-In-the-Loop Simulator）評価を行った． Fig. 12にシミュレーション構成を示す．コントローラ は実機で，インバータとモータをHILSで模擬した． また，Inverter 2側のコンデンサをアナログ回路で模 擬した．この回路は，HILSのInverter 2のモデルから 出力されるコンデンサ電流を表す電圧値を受け，コン デンサ電圧を表す電圧値をHILSに戻す．
+Table 3にシミュレーション条件を示す．BEVへの 搭載を想定した条件とした．電源電圧は360 Vであり， デュアルインバータ運転時のコンデンサの目標電圧は 180 Vとして，コンデンサ電圧のヒステリシス制御は 15 Vの幅で行う．デュアルインバータ運転は500 rpm 以上， トルクは60 Nm以下で行い，シングルインバ ー タ運転はそれ以外の条件で行う．
+Fig. 13にトルク40 Nm，回転数500 rpm以上での シミュレーション結果を示す．回転数が増加すると， 500 rpmでデュアルインバータ動作に切り替わった． コンデンサ電圧は，0ボルトからバッテリ電圧の半分 である180Vまで直線的に増加した．このとき，モー タ電流の乱れはなく，制御破綻なくモータ駆動できて いることが確認できた．さらに，コンデンサが目標電 圧180 Vに達した後，ヒステリシス制御により充放電 が繰り返され，コンデンサは目標電圧を維持できた．
+Fig. 14にトルクを40 Nm，回転数を600 rpmから 400 rpmに下げた場合のシミュレーション結果を示す． 500 rpmでデュアルインバータ運転からシングルイン バータ運転に切り替わっていることがわかる．この場 合，シングルインバータへのスイッチング時にはコン デンサに電流が流れないため，自然放電により電圧が 低下する．
+Fig. 15は，回転数を1000 rpmとし，トルクを60 Nm以上増加させた場合のシミュレーション結果であ
+る． この場合，デュアルインバータ運転からシングル インバータ運転に切り換えるため，回転数を低下させ た場合と同様に自然放電によりコンデンサ電圧が低下 するが，モータ電流は正弦波を維持して問題なく制御 できる．
+Fig. 16に回転数1000 rpm，トルク60 Nm以下に低 減した場合のシミュレーション結果を示す．回転数を 上げた場合と同様に， トルクが60 Nmに達した時点 でデュアルインバータ運転に切り替え，コンデンサ電 圧は直線的に増加し180 V付近で安定していることを 確認した．
+x
+特
+× 集
+Fig. 12 Simulation configuration
+Table 3
+Simulation Conditions
+I=1-m-n
+m=
+Ve
+=
+1=1-m-n
+m=
+VE - Vc (11)
+n =
+5 V6 (12)
+1
+1
+(100)(101)' V.
+Vn (110)(010)'
+.V+
+>e2
+V. Va Vm (100)(100)' (100)(111)' (a) Charging mode
+Vi Va Vm (111)(011)' (100)(000)' (b) Discharging mode
+O Charging Vector/ ADischarging Vector/ Holding Vector
+Charging mode V1=(000)(000),V == (100)(100), V == (110×110)
+1
+V.
+1=1-m-n m = VE - Vc
+n = VE -Vc
+ViVa Vm
+Discharging mode
+V1=(111)(111)',Vm=(111)(011),V __= (111×001) V 1=1-m-n m = Vc
+V.
+Vi Va Vm n =
+Charging mode V1=(100)(100), V == (100)(111), V == (100×101)
+1=1-m-n n = V. - (VE -Vc)
+VE
+V Vc
+ViVAVm n =
+1
+Discharging mode V1=(111)(011)', V == (100)(000), V == (110×010} V1-Vc
+1=1-m-n m == VE - Vc
+V
+n =
+Vi VA Vm VE -Vc
+Charging mode
+V1=(110)(110)', V == (100)(101), V == (110)(111)
+1
+V2
+1=1-m-n
+m = VE - Vc
+Vm
+(VE -2V)V. + (VE - VO)VS - (VE -Vc)2
+> n =. Vc(VE -V)
+Discharging mode
+V1=(111)(001)',V == (110)(010),V == (110×000)
+V. 1
+V2
+1
+1=1-m-n m =
+Vc
+V,
+Vc(VE -V) -(VE -2V)V2 + VEVs - Vc2
+Charging mode
+V1=(100)(101)', V == (110)(110), V _= (100×100y
+1
+Vm
+1=1-m-n m =- VE - Vc - V.
+V1
+VE - Vc
+-(Vg -2V)V2 - (Vg- V)V6 + (Vg-V)2
+n =- Vc(VE-V)
+Discharging mode
+V1=(110)(010),V == (111)(001),V == (111×011)
+Controller (PE-Expert 4)
+HILS (DT-1053 custom)
+Regulated Power Source 360V
+DO Gate Signal
+DI
+Encoder ABZ Signal
+DI
+L
+DO
+Inverter 1
+Current/Voltage sensor signal
+JMAG-RT
+1
+A/D K
+D/A
+Motor
+Model
+Capacitor Simulation
+Capacitor current Simulation signal
+FO Inverter 2
+Circuit
+IN
+D/A
+Capacitor Simulation Power Source
+Capacitor voltage Simulation signal
+OUT
+A/D
+Battery Voltage VE (VY
+360
+Capacitance of the capacitor (JF)
+450
+Capacitor voltage command (V)
+180
+Charge / discharge switching hysteresis width (V)
+15
+Switching frequency (kHz)
+10
+Minimum Motor speed of 2 inverter mode (rpm)
+500
+Maximum Torque of 2 inverter mode (Nm) 60
+Motor type
+IPM
+Number of poles 8
+Capacitor Voltage Motor current
+Capacitor Voltage Motor current
+Fig. 15 HILS Result at 1000rpm, increasing torque across 60Nm
+Hi-side
+Capacitor Voltage Motor current
+Capacitor Voltage Motor current
+Fig. 13 HILS Result at 40Nm, increasing rotation speed across 500rpm
+Capacitor Voltage Motor current
+Capacitor Voltage Motor current
+Fig. 14 HILS Result at 40Nm, decreasing rotation speed across 500rpm
+Fig. 16 HILS Result at 1000rpm, decreasing torque across 60Nm
+5.試験車による実験
+本システムを搭載した試験車（BEVコンバート車両）
+をFig. 17に，仕様をTable 4に示す．このBEVはト ヨタC-HRをベースにしており，360 Vのリチウムイ オンバッテリ，90 kWのオープン巻線モータ，自社製 のSiC-MOSFETを用いた2つのインバータを備えて
+いる．
+Fig. 18にシャシダイナモメータでの運転結果を示 す．上から，回転数の増加によるシングルインバータ 運転からデュアルインバータ運転への切換， トルクの 減少によるシングルインバータ運転からデュアルイン バータ運転への切換， トルクの増加によるデュアルイ ンバータ運転からシングルインバータ運転への切換の 結果である．どの試験条件でもモード切替は問題なく スムーズに実施できた．さらに，試験車は道路でも問 題なく走行できることを確認した．
+Fig. 17 Test Car (Converted EV)
+Table 4 Test Car Specifications で，
+DENSO TECHNICAL REVIEW Vol.27 2022
+x 特
+X
+集
+Fig. 18 Test Car experimental result
+6.おわりに
+バッテリとコンデンサを電源とするデュアルインバ
+ー タシステムについて，BEV搭載を想定してシング
+ルインバータ運転とデュアルインバータ運転を切り替 える制御方法を考案し，シミュレーションと実車走行 により動作を確認した．今回は電源電圧の1/2を目標 にコンデンサ電圧を0 Vから制御したが，本システム はどのようなコンデンサ電圧にも対応できるため，動 作領域に応じて最適なコンデンサ電圧に制御すること より効率的なシステムとなる可能性がある．
+謝辞
+本稿は，国立研究開発法人新エネルギー・産業技術 総合開発機構（NEDO）の助成事業の結果得られたも のである．
+63
+64
+2 inverter operation
+1 inverter operation
+V
+Hi-side
+W
+Gate signal
+02
+V W2
+100
+I (A)
+0
+-100
+200
+Vc (V)
+100
+0
+Time 50ms/div.
+1 inverter operation 2 inverter operation
+W
+Hi-side
+Gate signal
+U2 V2 W2
+100
+In (A)
+0
+-100
+200
+Ve (V)
+100
+0
+Zoom x10 50ms/div.
+UI vi W1 U2 V2 W2
+Hi-side Gate signal
+100
+In (A)
+0
+-100
+200
+E, 3100
+0
+Time 5ms/div.
+I inverter operation > 2 inverter operation
+U V
+Gate signal
+U2 V2 W
+100
+I. (A)
+0
+-100
+200
+Ve (V)
+5100
+0
+50ms/div. Zoom x10
+vi wil
+Hi-side
+Gate signal
+U V2 W2
+100
+I. (A)
+0
+-100
+200 20
+Vc (V)
+5100
+0
+Time
+5ms/div.
+2 inverter operation > ] inverter operation
+Hi-side
+Gate signal
+112 V2 W2
+100
+If (A)
+0
+-100
+200
+Vc (V)
+0
+Time
+50ms/div.
+Controler
+PCU*
+Motor Battery BMS **
+*Power Control Unit
+** Battery Management System
+Motor type IPM
+Number of poles 8
+Motor maximum output (kW)
+90
+Motor maximum torque (Nm)
+200
+Battery pack voltage (V)
+360
+PCU
+Dual inverter with SiC-MOSFET
+Capacitor capacity (uF)
+450
+Maximum speed (km/h)
+50
+Switching
+50A/div
+Iv 0
+from 1 inverter mode
+Tw
+to 2 inverter mode WWWWWWWW
+depending on speed
+Vc
+50V/div
+50ms/div
+0
+Switching
+50A/divy
+from 1 inverter mode
+to 2 inverter mode
+depending on Torque
+Vc
+50V/div
+50ms/div.
+Switching
+50A/div.
+from 2 inverter mode
+Tw
+Iv
+0AXAX02202202202200200
+to 1 inverter mode
+Vc
+50V/div
+50ms/div.
+depending on Torque
+0
+DENSO TECHNICAL REVIEW Vol.27 2022
+参考文献
+1) E.G. Shivakumar, K. Gopakumar, S.K. Sinha, A. Pittet and V.T. Ranganathan : “Space vector PWM control of dual inverter fed open-end winding induction motor drive ” , Annual
+IEEE Conference on Applied Power Electronics Conference and Exposition, pp. 399-405 (2001)
+2)
+H. Matsumori, Y. Makimura, S. Morisita, Y. Maeda, T. Kosaka, N. Matsui, N. Saito, Y. Ito, S. Saha, “Optimum PWM Switching Mode Selection of Dual Inverter-fed Open Winding IPMSM Drive System for High-power Premium Class EV, IEEE Energy Conversion Congress and Exposition, pp. 6318- 6324 (2020)
+” 8) Y. Ohto, T. Noguchi, and T. Sasaya,
+3) 水越，芳賀：「デュアルインバータ駆動オープン巻線誘導機 の低変調率時における電圧波形改善法」平成29年電気学会 産業応用部門大会，pp. 257-260 (2017)
+4) A. D. Kiadehi, K. E. K. Drissi, and C. Pasquier,
+“Voltage THD Reduction for Dual-Inverter Fed Open-End Load With
+Isolated DC Sources, ” IEEE Trans. on Industrial Electronics, vol. 64, no. 3, pp. 2102-2111 (2017)
+5) A. Mizukoshi, and H. Haga, “Control Method for Reducing the Motor loss of Dual-inverter fed Open-end winding Induction Motor in the Low-speed Region,
+” IEEJ Journal of Industry Applications, vol. 9, pp. 27-35 (2019)
+著者
+風岡諒哉 かざおかりょうや
+電動パワトレインシステム先行開発部 電源システムの要素技術開発に従事
+山田隆弘 やまだたかひろ
+株式会社ミライズテクノロジーズ パワエレ第２開発部 次世代パワー半導体の応用研究開発に 従事
+6) Y. Oto, T. Noguchi, T. Sasaya, T. Yamada, and R. Kazaoka, “Space Vector Modulation of Dual Inverter System Focusing on Improvement of Multilevel Voltage Waveforms, ” IEEE Trans. on Industrial Electronics, vol. 66, no. 12, pp. 9139- 9148 (2019)
+7) Y. Oto, T. Noguchi, “Fault-Tolerant Function of DC- Bus Power Source in A Dual Inverter Drive System and Its Operation Characteristics, ” IEEJ Journal of Industry Applications, vol. 8, no. 6, pp. 953-959 (2019)
+“Space Vector Modulation
+” of Dual Inverter with Battery and Capacitor across DC Buses, IEEE International Conference on Power Electronics and Drive System, pp. 1172-1177 (2017)
+× 特
+9) Y. Oto, T. Noguchi,
+“Fault Tolerant Operation of Motor Drive
+Fed by Dual Inverter Focusing on DC-Bus Battery Failure, ” IEEE 22nd International Conference on Electrical Machines
+集 ×
+and Systems (2019)
+木村友則 きむらとものり
+株式会社ミライズテクノロジーズ パワエレ第２開発部 次世代パワー半導体の応用研究開発に 従事
+野口季彦 のぐちとしひこ 静岡大学大学院工学研究科 電気電子工学専攻 教授 博士（工学） 電力変換器 モータドライブの研究に従事
+65
+66

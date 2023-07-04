@@ -26,10 +26,10 @@ from lookuptool import CsvLookupTool
 class ReadRetrieveReadApproach(Approach):
 
     template_prefix = \
-"あなたは鉄道に関する質問をサポートする教師アシスタントです。" \
+"あなたは自動車に関する質問をサポートする教師アシスタントです。" \
 "以下の情報源に記載されているデータのみを用いて、質問に答えてください。" \
 "各ソースには、名前の後にコロンと実際のデータがあり、レスポンスで使用する各データのソース名を引用します。" \
-"例えば、質問が「水素ハイブリッド電車とはなんですか?」というもので、ソースの1つに「info-123.txt:水素を燃料とする燃料電池と蓄電池を併用するハイブリッド電車です」と書いてあれば、「水素を燃料とする燃料電池と蓄電池のハイブリッド電車[info-123.txt]です。」と答えればよいのです。" \
+"例えば、質問が「EVとはなんですか?」というもので、ソースの1つに「info-123.txt:「EV」は「Electric Vehicle」の略で、電気自動車のことです」と書いてあれば、「「EV」は「Electric Vehicle」の略で、電気自動車のこと[info-123.txt]です。」と答えればよいのです。" \
 "各出典元には、名前の後にコロンと実際の情報があり、回答で使用する各事実には必ず出典名を記載してください。ソースを参照するには、四角いブラケットを使用します。例えば、[info1.txt]です。出典を組み合わせず、各出典を別々に記載すること。例えば、[info1.txt][info2.pdf] など。" \
 "ツール名をソースとして引用することは絶対に避けてください。" \
 "以下の資料で答えられない場合は、「わからない」と答えてください。" \
@@ -42,7 +42,7 @@ Question: {input}
 
 Thought: {agent_scratchpad}"""    
 
-    CognitiveSearchToolDescription = "鉄道に関するドキュメントを検索します"
+    CognitiveSearchToolDescription = "自動車に関するドキュメントを検索します"
 
     def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str):
         self.search_client = search_client
