@@ -9,7 +9,7 @@ export type ExampleModel = {
 
 const EXAMPLES: ExampleModel[] = [
     {
-        text: "水素ハイブリッド電車とはなんですか",
+        text: "ハイブリッド電車とはなんですか",
         value: "水素ハイブリッド電車とはなんですか"
     },
     { 
