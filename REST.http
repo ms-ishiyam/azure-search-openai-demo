@@ -40,7 +40,7 @@ Content-Type: application/json
 ###
 POST {{apimanagement}}/api/ask HTTP/1.1
 Content-Type: application/json
-Ocp-Apim-Subscription-Key: 299e841e33a443ff8646fb8f3520cb94
+Ocp-Apim-Subscription-Key: xxxx
 
 {
     "approach": "rtr", 
