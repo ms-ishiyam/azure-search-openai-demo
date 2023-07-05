@@ -156,7 +156,7 @@ class Chat(Resource):
 class Content(Resource):
     def get(self, path):
         print(path)
-        blob = blob_container.get_blob_client(path).download_blob()
+        blob = blob_container.get_blob_client(path).download_blob(encoding="utf-8")
         mime_type = blob.properties["content_settings"]["content_type"]
         if mime_type == "application/octet-stream":
             mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
