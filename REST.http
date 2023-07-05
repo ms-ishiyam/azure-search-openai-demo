@@ -1,4 +1,4 @@
-@backend = https://app-backend-kmbbn7u24cfd2.azurewebsites.net
+@backend = https://app-backend-xxx.azurewebsites.net
 ###
 
 
@@ -8,7 +8,7 @@ content-type: application/json
 
 {
     "approach": "rtr", 
-    "question": "デュアルインバータシステムの特徴を教えてください"
+    "question": "EVとBEVの違いはなんですか"
 }
 
 ###
@@ -17,7 +17,7 @@ content-type: application/json
 
 {
     "approach": "rtr", 
-    "question": "従来のインバーターシステムの課題を教えてください"
+    "question": "デュアルインバータシステムの特徴を教えてください"
 }
 
 
@@ -25,14 +25,14 @@ content-type: application/json
 API Managementの動作確認
 ###
 
-@apimanagement = https://apim-kmbbn7u24cfd2.azure-api.net
+@apimanagement = https://apim-xxx.azure-api.net
 ###
 POST {{apimanagement}}/api/ask HTTP/1.1
 Content-Type: application/json
 
 {
     "approach": "rtr", 
-    "question": "デュアルインバータシステムの特徴を教えてください"
+    "question": "EVとBEVの違いはなんですか"
 }
 
 
@@ -44,5 +44,5 @@ Ocp-Apim-Subscription-Key: xxxx
 
 {
     "approach": "rtr", 
-    "question": "デュアルインバータシステムの特徴を教えてください"
+    "question": "EVとBEVの違いはなんですか"
 }
