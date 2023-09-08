@@ -14,12 +14,16 @@
       "allowedRoles": [
         "authenticated"
       ]
+    },
+    {
+      "route": "/login",
+      "redirect": "/.auth/login/aad"
     }
   ],
   "responseOverrides": {
     "401": {
       "statusCode": 302,
-      "redirect": "/.auth/login/add"
+      "redirect": "/login"
     }
   },
   "auth": {
