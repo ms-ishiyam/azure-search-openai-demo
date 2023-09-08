@@ -1,31 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/staticwebapp.config.json" ,
-    "routes": [
-    {
-      "route": "/.auth/login/twitter",
-      "statusCode": 404
-    },
-    {
-      "route": "/.auth/login/github",
-      "statusCode": 404
-    },
-    {
-      "route": "/*",
-      "allowedRoles": [
-        "authenticated"
-      ]
-    },
-    {
-      "route": "/login",
-      "redirect": "/.auth/login/aad"
-    }
-  ],
-  "responseOverrides": {
-    "401": {
-      "statusCode": 302,
-      "redirect": "/login"
-    }
-  },
   "auth": {
     "identityProviders": {
       "azureActiveDirectory": {
@@ -35,6 +8,30 @@
           "clientSecretSettingName": "AAD_Client_Secret"
         }
       }
+    }
+  },
+  "routes": [
+    {
+      "route": "/login",
+      "redirect": "/.auth/login/aad"
+    },
+    {
+      "route": "/logout",
+      "redirect": "/.auth/logout"
+    },
+    {
+      "route": "/.auth/login/aad/callback",
+      "redirect": "/"
+    },
+    {
+      "route": "/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "redirect": "/login",
+      "statusCode": 302
     }
   }
 }
